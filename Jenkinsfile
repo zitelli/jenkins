@@ -8,9 +8,7 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+            steps { checkout scm }
         }
 
         stage('Build Image') {
@@ -24,10 +22,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Run tests inside the built image
-                    app.inside {
-                        sh 'npm test'
-                    }
+                    app.inside { sh 'npm test' }
                 }
             }
         }
@@ -35,10 +30,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Stop and remove the old container
                     sh "docker stop ${CONTAINER_NAME} || true"
                     sh "docker rm ${CONTAINER_NAME} || true"
-                    // Start the new container, mapping host port 80 to container port 3000
                     app.run("-d --name ${CONTAINER_NAME} -p 8081:3000")
                 }
             }
@@ -47,8 +40,7 @@ pipeline {
 
     post {
         always {
-            // Clean up old dangling images (plugin‑based)
-            docker.imagePrune(filters: 'dangling=true')
+            sh "docker image prune -f"   // now works thanks to mounted CLI
         }
     }
 }
