@@ -40,7 +40,7 @@ pipeline {
 
     post {
         always {
-            sh "docker image prune -f"   // now works thanks to mounted CLI
+            sh "docker image prune -f"
         }
     }
 }
