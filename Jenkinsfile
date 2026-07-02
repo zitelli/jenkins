@@ -47,8 +47,8 @@ pipeline {
 
     post {
         always {
-            // Clean up dangling images (optional)
-            sh "docker image prune -f"
+            // Clean up old dangling images (plugin‑based)
+            docker.imagePrune(filters: 'dangling=true')
         }
     }
 }
