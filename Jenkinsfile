@@ -7,48 +7,36 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                checkout scm
+            }
         }
 
         stage('Build Image') {
             steps {
-                script {
-                    app = docker.build("${IMAGE_NAME}:${env.BUILD_ID}")
-                }
+                sh "docker build -t ${IMAGE_NAME}:${env.BUILD_ID} ."
             }
         }
 
         stage('Test') {
             steps {
-                script {
-                    app.inside {
-                        sh 'npm test'
-                    }
-                }
+                sh "docker run --rm ${IMAGE_NAME}:${env.BUILD_ID} npm test"
             }
         }
 
         stage('Deploy') {
             steps {
-                script {
-                    // Para o container antigo (se existir) via plugin
-                    try {
-                        docker.container(CONTAINER_NAME).stop()
-                        docker.container(CONTAINER_NAME).remove(force: true)
-                    } catch (e) { }
-                    // Inicia o novo container
-                    app.run("-d --name ${CONTAINER_NAME} -p 8081:3000")
-                }
+                sh "docker stop ${CONTAINER_NAME} || true"
+                sh "docker rm ${CONTAINER_NAME} || true"
+                sh "docker run -d --name ${CONTAINER_NAME} -p 8081:3000 ${IMAGE_NAME}:${env.BUILD_ID}"
             }
         }
-        
     }
 
     post {
         always {
-            sh 'docker image prune -f'   
+            sh 'docker image prune -f'
         }
     }
 }
