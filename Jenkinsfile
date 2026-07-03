@@ -7,6 +7,11 @@ pipeline {
     }
 
     stages {
+
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+
         stage('Build Image') {
             steps {
                 script {
@@ -38,11 +43,12 @@ pipeline {
                 }
             }
         }
+        
     }
 
     post {
         always {
-            echo 'Pipeline finalizada.'   
+            sh 'docker image prune -f'   
         }
     }
 }
