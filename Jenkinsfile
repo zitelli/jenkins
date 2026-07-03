@@ -7,10 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps { checkout scm }
-        }
-
         stage('Build Image') {
             steps {
                 script {
@@ -36,9 +32,7 @@ pipeline {
                     try {
                         docker.container(CONTAINER_NAME).stop()
                         docker.container(CONTAINER_NAME).remove(force: true)
-                    } catch (e) {
-                        // ignorar se não existir
-                    }
+                    } catch (e) { }
                     // Inicia o novo container
                     app.run("-d --name ${CONTAINER_NAME} -p 8081:3000")
                 }
@@ -50,7 +44,7 @@ pipeline {
         always {
             script {
                 // Limpa imagens dangling via plugin (sem CLI)
-                docker.imagePrune()
+                docker.imagePrune(filters: 'dangling=true')
             }    
         }
     }
