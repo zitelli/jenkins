@@ -48,7 +48,10 @@ pipeline {
 
     post {
         always {
-            docker.imagePrune(filters: 'dangling=true')
+            script {
+                // Limpa imagens dangling via plugin (sem CLI)
+                docker.imagePrune()
+            }    
         }
     }
 }
