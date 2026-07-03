@@ -22,7 +22,9 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    app.inside { sh 'npm test' }
+                    app.inside {
+                        sh 'npm test'
+                    }
                 }
             }
         }
@@ -30,8 +32,14 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    sh "docker stop ${CONTAINER_NAME} || true"
-                    sh "docker rm ${CONTAINER_NAME} || true"
+                    // Para o container antigo (se existir) via plugin
+                    try {
+                        docker.container(CONTAINER_NAME).stop()
+                        docker.container(CONTAINER_NAME).remove(force: true)
+                    } catch (e) {
+                        // ignorar se não existir
+                    }
+                    // Inicia o novo container
                     app.run("-d --name ${CONTAINER_NAME} -p 8081:3000")
                 }
             }
@@ -40,7 +48,7 @@ pipeline {
 
     post {
         always {
-            sh "docker image prune -f"
+            docker.imagePrune(filters: 'dangling=true')
         }
     }
 }
